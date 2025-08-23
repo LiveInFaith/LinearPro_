@@ -91,7 +91,68 @@ namespace LinearPro_.Algorithms
             steps.Add($"Initial bound: {root.Bound:0.###}");
             steps.Add(RenderNodeBlock(root, names));
 
-            return new List<string> { Name };
+            // Track best (optional informational only)
+            double bestVal = double.NegativeInfinity;
+            int[] bestSol = null;
+
+            // DFS stack; no pruning by bound; infeasible nodes are shown but not expanded
+            var stack = new Stack<Node>();
+            EnqueueChildren(root, isRoot: true, values, weights, capacity, order, names, stack);
+
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+                steps.Add(RenderNodeBlock(node, names));
+
+                // Infeasible: don't branch further
+                if (node.WeightFixed > capacity + 1e-9)
+                {
+                    steps.Add($"{node.Label} is infeasible (weight {node.WeightFixed:0.###} > capacity {capacity:0.###}).");
+                    continue;
+                }
+
+                // Integral leaf? record candidate and stop branching
+                if (!node.PivotOrig.HasValue)
+                {
+                    double cand = 0.0;
+                    for (int i = 0; i < n; i++)
+                        if (node.Plan.Any(p => p.orig == i && p.take >= 1.0 - 1e-9))
+                            cand += values[i];
+
+                    if (cand > bestVal)
+                    {
+                        bestVal = cand;
+                        bestSol = node.Fix.ToArray();
+
+                        // Fill unknowns with 0/1 from plan for a concrete vector
+                        for (int i = 0; i < n; i++)
+                        {
+                            if (bestSol[i] < 0)
+                                bestSol[i] = node.Plan.Any(p => p.orig == i && p.take >= 1.0 - 1e-9) ? 1 : 0;
+                        }
+
+                        steps.Add($"New best at {node.Label}: value = {bestVal:0.###}");
+                    }
+                    continue;
+                }
+
+                // Else: branch on pivot variable
+                EnqueueChildren(node, isRoot: false, values, weights, capacity, order, names, stack);
+            }
+
+            // Final best (optional)
+            if (bestSol != null)
+            {
+                steps.Add("\n=== BEST SOLUTION (from displayed leaves) ===");
+                steps.Add($"Value: {bestVal:0.###}");
+                steps.Add("Take: " + string.Join(", ",
+                    Enumerable.Range(0, n).Where(i => bestSol[i] == 1).Select(i => names[i])));
+            }
+
+            return steps;
         }
+
+            
+        
     }
 }
