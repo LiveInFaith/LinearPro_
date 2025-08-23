@@ -37,6 +37,30 @@ namespace LinearPro_.Algorithms
 
         public List<string> Solve(LPModel model)
         {
+            var steps = new List<string>();
+
+            // --- Expect exactly one <= knapsack constraint ---
+            if (model?.Constraints == null || model.Constraints.Count != 1 ||
+                model.Constraints[0].Relation != Relation.LE)
+            {
+                return new List<string> { "ERROR: Knapsack expects exactly one <= constraint." };
+            }
+
+            var values = model.ObjectiveCoefficients;
+            var weights = model.Constraints[0].Coefficients;
+            double capacity = model.Constraints[0].Rhs;
+            int n = values.Length;
+
+            if (weights.Length != n)
+                return new List<string> { "ERROR: Objective and constraint variable counts differ." };
+
+            // Names (x1..xn if none provided)
+            string[] names = (model.VariableColumns != null && model.VariableColumns.Count == n)
+                ? model.VariableColumns.ToArray()
+                : Enumerable.Range(1, n).Select(i => "x" + i).ToArray();
+
+            // ---- TOP BLOCK: ranking table (rt, rank, c) ----
+            steps.Add(RenderRankingBlock(names, values, weights, capacity));
 
             return new List<string> { Name };
         }
