@@ -183,6 +183,30 @@ namespace LinearPro_.Algorithms
             return sb.ToString();
         }
 
+        private void EnqueueChildren(
+            Node node,
+            bool isRoot,
+            double[] values,
+            double[] weights,
+            double capacity,
+            int[] order,
+            string[] names,
+            Stack<Node> stack)
+        {
+            if (node.PivotOrig == null) return; // integral leaf
 
+            int k = node.PivotOrig.Value;
+            var fix0 = (int[])node.Fix.Clone(); fix0[k] = 0;
+            var fix1 = (int[])node.Fix.Clone(); fix1[k] = 1;
+
+            // Stack is LIFO:
+            // Root: show p1 (=0) before p2 (=1) => push 1 then 0
+            // Deeper: show ".1" (=1) before ".2" (=0) => push 0 then 1
+            var child0 = NewNode(fix0, node.Label, false, k, 0, values, weights, capacity, order, names);
+            var child1 = NewNode(fix1, node.Label, false, k, 1, values, weights, capacity, order, names);
+
+            stack.Push(child1);
+            stack.Push(child0);
+        }
     }
 }
