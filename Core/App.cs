@@ -19,8 +19,8 @@ namespace LinearPro_.Core
             _algorithms.Add(new PrimalSimplex());
             /*_algorithms.Add(new RevisedSimplex());
             _algorithms.Add(new BranchAndBoundSimplex());
-            _algorithms.Add(new CuttingPlane());
-            _algorithms.Add(new KnapsackBnB());*/
+            _algorithms.Add(new CuttingPlane());*/
+            _algorithms.Add(new Knapsack());
         }
 
         public void Run()

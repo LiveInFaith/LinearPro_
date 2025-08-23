@@ -1,52 +1,44 @@
 ﻿using LinearPro_.Model;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LinearPro_.Algorithms
 {
-    //max +2 +3 +3 +5 +2 +4 
-    // +11 +8 +6 +14 +10 +10 <= 40 
-    internal class Knapsack : IAlgorithm
+    /// <summary>
+    /// 0/1 Knapsack via Branch & Bound that branches on the first fractional item
+    /// from the fractional-knapsack greedy plan (your Excel pivot rule).
+    /// - No bound pruning (shows all node tables).
+    /// - Infeasible nodes are displayed but not expanded.
+    /// - Labeling:
+    ///     p0
+    ///       ├─ p1  (pivot = 0)
+    ///       └─ p2  (pivot = 1)
+    ///     deeper:
+    ///       pA.B.2 = 0-branch,  pA.B.1 = 1-branch
+    /// </summary>
+    internal sealed class Knapsack : IAlgorithm
     {
         public string Name => "Knapsack";
-        public Knapsack() { }
 
-        public List<string> Solve(LPModel lPModel)
+        private sealed class Node
         {
-
-
-
-
-            return new List<string>();
+            // Fix per ORIGINAL variable index: -1 unknown, 0 fixed to 0, 1 fixed to 1
+            public int[] Fix;
+            public string Label;           // p0, p1, p2, p1.1, p1.2, ...
+            public string BranchHeader;    // "x5 = 0" / "x5 = 1" or ""
+            public double Bound;           // greedy upper bound (used for display)
+            public double ValueFixed;      // sum of profits for fix==1
+            public double WeightFixed;     // sum of weights for fix==1
+            public int? PivotOrig;         // original index of pivot (first fractional)
+            public List<(int orig, double take, double left)> Plan; // display rows in ORIGINAL order
         }
 
-        public void Rank(List<string> rank)
+        public List<string> Solve(LPModel model)
         {
-            double[] objCoefficients = new double[6] { 2, 3, 3, 5, 2, 4 };
-            List<double> conCoefficients = new List<double> { 11, 8, 6, 14, 10, 10, 40 };
-            Dictionary<int, double> RankAndValue = new Dictionary<int, double>();
-            List<double> tempValues = new List<double>();
 
-
-            double RHS = conCoefficients.Last();
-
-            for (int i = 0; i < objCoefficients.Length; i++)
-            {
-                tempValues.Add(objCoefficients[i] / conCoefficients[i]);
-            }
-
-            tempValues.Sort();
-            tempValues.Reverse();
-
-            for (int i = 0; i < tempValues.Count; i++)
-            {
-                RankAndValue.Add(i + 1, tempValues[i]);
-            }
-
+            return new List<string> { Name };
         }
-
     }
 }
