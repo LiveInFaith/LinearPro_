@@ -152,7 +152,37 @@ namespace LinearPro_.Algorithms
             return steps;
         }
 
-            
-        
+        private static string RenderRankingBlock(string[] names, double[] values, double[] weights, double capacity)
+        {
+            int n = names.Length;
+
+            // ratios and ranks
+            var ratio = new double[n];
+            for (int i = 0; i < n; i++)
+                ratio[i] = (weights[i] == 0)
+                    ? (values[i] > 0 ? double.PositiveInfinity : 0.0)
+                    : values[i] / weights[i];
+
+            var order = Enumerable.Range(0, n).OrderByDescending(i => ratio[i]).ThenBy(i => i).ToArray();
+            var rank = new int[n];
+            for (int pos = 0; pos < n; pos++)
+                rank[order[pos]] = pos + 1;
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Ranking (by profit/weight):");
+            sb.AppendLine("item\trt\trank\tc1");
+            for (int i = 0; i < n; i++)
+            {
+                string rtStr = double.IsPositiveInfinity(ratio[i])
+                    ? "inf"
+                    : ratio[i].ToString("0.###", CultureInfo.InvariantCulture);
+                sb.AppendLine($"{names[i]}\t{rtStr}\t{rank[i]}\t{weights[i].ToString("0.###", CultureInfo.InvariantCulture)}");
+            }
+            sb.AppendLine("RHS Value:\t\t" + capacity.ToString("0.###", CultureInfo.InvariantCulture));
+            sb.AppendLine(); // blank line
+            return sb.ToString();
+        }
+
+
     }
 }
