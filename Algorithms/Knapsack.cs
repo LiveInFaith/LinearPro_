@@ -62,6 +62,35 @@ namespace LinearPro_.Algorithms
             // ---- TOP BLOCK: ranking table (rt, rank, c) ----
             steps.Add(RenderRankingBlock(names, values, weights, capacity));
 
+            // Ratio order (descending profit/weight), safe if weight==0
+            var order = Enumerable.Range(0, n)
+                                  .Select(i => new
+                                  {
+                                      i,
+                                      r = (weights[i] == 0
+                                            ? (values[i] > 0 ? double.PositiveInfinity : 0.0)
+                                            : values[i] / weights[i])
+                                  })
+                                  .OrderByDescending(a => a.r)
+                                  .Select(a => a.i)
+                                  .ToArray();
+
+            // --- Root node (all unknown) ---
+            var root = NewNode(
+                fix: Enumerable.Repeat(-1, n).ToArray(),
+                parentLabel: null,
+                isRoot: true,
+                branchVarOrig: null,
+                branchValue: -1,
+                values: values,
+                weights: weights,
+                capacity: capacity,
+                order: order,
+                names: names);
+
+            steps.Add($"Initial bound: {root.Bound:0.###}");
+            steps.Add(RenderNodeBlock(root, names));
+
             return new List<string> { Name };
         }
     }
