@@ -334,6 +334,12 @@ namespace LinearPro_.Algorithms
             return (v, vFixed: SumFixed(values, fix), wFixed: SumFixed(weights, fix),
                     pivotOrig: pivot, plan: seq.OrderBy(x => x.orig).ToList());
         }
-
+        private static double SumFixed(double[] arr, int[] fix)
+        {
+            double s = 0.0;
+            for (int i = 0; i < fix.Length; i++)
+                if (fix[i] == 1) s += arr[i];
+            return s;
+        }
     }
 }
