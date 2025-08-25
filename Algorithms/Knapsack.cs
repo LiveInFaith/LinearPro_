@@ -208,5 +208,52 @@ namespace LinearPro_.Algorithms
             stack.Push(child1);
             stack.Push(child0);
         }
+
+        private Node NewNode(
+            int[] fix,
+            string parentLabel,
+            bool isRoot,
+            int? branchVarOrig, // original index of the variable we just fixed (null for root)
+            int branchValue,    // 0 or 1 if not root
+            double[] values,
+            double[] weights,
+            double capacity,
+            int[] order,
+            string[] names)
+        {
+            // Compute bound + greedy plan + pivot for this partial fix
+            var (bound, vFixed, wFixed, pivotOrig, plan) = GreedyFromFix(fix, values, weights, capacity, order);
+
+            // Label + branch header
+            string label;
+            string hdr;
+
+            if (isRoot)
+            {
+                label = "p0";
+                hdr = "";
+            }
+            else
+            {
+                if (parentLabel == "p0")
+                    label = (branchValue == 0) ? "p1" : "p2";
+                else
+                    label = parentLabel + ((branchValue == 1) ? ".1" : ".2");
+
+                hdr = (branchVarOrig.HasValue ? $"{names[branchVarOrig.Value]} = {branchValue}" : "");
+            }
+
+            return new Node
+            {
+                Fix = (int[])fix.Clone(),
+                Label = label,
+                BranchHeader = hdr,
+                Bound = bound,
+                ValueFixed = vFixed,
+                WeightFixed = wFixed,
+                PivotOrig = pivotOrig,
+                Plan = plan
+            };
+        }
     }
 }
