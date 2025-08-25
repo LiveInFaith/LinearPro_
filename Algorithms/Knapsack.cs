@@ -341,5 +341,50 @@ namespace LinearPro_.Algorithms
                 if (fix[i] == 1) s += arr[i];
             return s;
         }
+        private static string RenderNodeBlock(Node node, string[] names)
+        {
+            var sb = new System.Text.StringBuilder();
+
+            if (!string.IsNullOrWhiteSpace(node.BranchHeader))
+                sb.AppendLine(node.BranchHeader);
+
+            sb.AppendLine(node.Label);
+            sb.AppendLine("item\ty/n\tleft");
+
+            // Defensive map so every variable prints exactly one row
+            var map = node.Plan
+                .GroupBy(p => p.orig)
+                .ToDictionary(g => g.Key, g => g.Last());
+
+            for (int orig = 0; orig < names.Length; orig++)
+            {
+                (int orig, double take, double left) rec;
+                if (!map.TryGetValue(orig, out rec))
+                    rec = (orig, 0.0, double.NaN); // fallback
+
+                string takeStr =
+                    Math.Abs(rec.take) < 1e-9 ? "0" :
+                    Math.Abs(rec.take - 1.0) < 1e-9 ? "1" :
+                    rec.take.ToString("0.000", CultureInfo.InvariantCulture);   // 3 decimals
+
+                string leftStr = double.IsNaN(rec.left)
+                    ? ""
+                    : Math.Round(rec.left).ToString(CultureInfo.InvariantCulture);
+
+                sb.AppendLine($"{names[orig]}\t{takeStr}\t{leftStr}");
+            }
+
+            // Pivot and z (greedy bound)
+            sb.AppendLine("Pivot: " + (node.PivotOrig.HasValue ? names[node.PivotOrig.Value] : "(none)"));
+            string zStr = (double.IsNegativeInfinity(node.Bound) || double.IsNaN(node.Bound))
+                ? "infeasible"
+                : node.Bound.ToString("0.000", CultureInfo.InvariantCulture);
+            sb.AppendLine("z = " + zStr);
+
+            return sb.ToString();
+        }
+    }
+}
+
     }
 }
