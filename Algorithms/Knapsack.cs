@@ -255,5 +255,85 @@ namespace LinearPro_.Algorithms
                 Plan = plan
             };
         }
+
+        private (double bound, double vFixed, double wFixed, int? pivotOrig,
+         List<(int orig, double take, double left)> plan)
+    GreedyFromFix(int[] fix, double[] values, double[] weights, double capacity, int[] order)
+        {
+            int n = fix.Length;
+            double v = 0.0, w = 0.0;
+            double left = capacity;
+
+            var seq = new List<(int orig, double take, double left)>(n);
+
+            // 1) Apply fixed decisions (ORIGINAL index order)
+            for (int i = 0; i < n; i++)
+            {
+                if (fix[i] == 1)
+                {
+                    v += values[i];
+                    w += weights[i];
+                    left -= weights[i];
+                    seq.Add((i, 1.0, left));
+                }
+                else if (fix[i] == 0)
+                {
+                    seq.Add((i, 0.0, left));
+                }
+            }
+
+            // If already infeasible, still return a full "plan"
+            if (left < -1e-9)
+            {
+                var seen = new HashSet<int>(seq.Select(s => s.orig));
+                for (int i = 0; i < n; i++)
+                    if (!seen.Contains(i))
+                        seq.Add((i, 0.0, left)); // show 0 take and the same left for display
+                return (double.NegativeInfinity, v, w, null, seq.OrderBy(x => x.orig).ToList());
+            }
+
+            // 2) Greedy fill the unknowns in ratio order
+            int? pivot = null;
+            foreach (var j in order)
+            {
+                if (fix[j] != -1) continue; // skip fixed
+
+                if (left > 1e-9)
+                {
+                    if (weights[j] <= left + 1e-9)
+                    {
+                        v += values[j];
+                        left -= weights[j];
+                        seq.Add((j, 1.0, left));
+                    }
+                    else
+                    {
+                        double frac = left / weights[j];
+                        if (frac > 0)
+                        {
+                            v += values[j] * frac;
+                            left = 0.0;
+                            seq.Add((j, frac, left));
+                            pivot = j; // first fractional
+                        }
+                        break; // capacity exhausted
+                    }
+                }
+                else
+                {
+                    seq.Add((j, 0.0, left));
+                }
+            }
+
+            // 3) Ensure every variable appears exactly once
+            var seenAll = new HashSet<int>(seq.Select(s => s.orig));
+            for (int i = 0; i < n; i++)
+                if (!seenAll.Contains(i))
+                    seq.Add((i, 0.0, left));
+
+            return (v, vFixed: SumFixed(values, fix), wFixed: SumFixed(weights, fix),
+                    pivotOrig: pivot, plan: seq.OrderBy(x => x.orig).ToList());
+        }
+
     }
 }
