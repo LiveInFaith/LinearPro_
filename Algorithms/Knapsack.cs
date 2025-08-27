@@ -6,18 +6,6 @@ using System.Linq;
 
 namespace LinearPro_.Algorithms
 {
-    /// <summary>
-    /// 0/1 Knapsack via Branch & Bound that branches on the first fractional item
-    /// from the fractional-knapsack greedy plan (your Excel pivot rule).
-    /// - No bound pruning (shows all node tables).
-    /// - Infeasible nodes are displayed but not expanded.
-    /// - Labeling:
-    ///     p0
-    ///       ├─ p1  (pivot = 0)
-    ///       └─ p2  (pivot = 1)
-    ///     deeper:
-    ///       pA.B.2 = 0-branch,  pA.B.1 = 1-branch
-    /// </summary>
     internal sealed class Knapsack : IAlgorithm
     {
         public string Name => "Knapsack";
@@ -383,8 +371,5 @@ namespace LinearPro_.Algorithms
 
             return sb.ToString();
         }
-    }
-}
-
     }
 }
